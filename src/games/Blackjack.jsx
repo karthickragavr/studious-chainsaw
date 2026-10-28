@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ResultModal from '../components/ResultModal';
 import { useBlackjack } from '../hooks/useBlackjack';
 import { useWallet } from '../hooks/useWallet';
+import { useRoundGuard } from '../hooks/useRoundGuard';
 import { useBetHistory } from '../hooks/useBetHistory';
 import { useAchievements } from '../hooks/useAchievements';
 
@@ -169,8 +170,10 @@ function Blackjack() {
             const totalBetInvested = (bet * hands.reduce((sum, h) => sum + h.betMultiplier, 0)) + (insuranceTaken ? bet / 2 : 0);
             const netProfit = totalWinnings - totalBetInvested;
 
-            addTransaction(netProfit >= 0 ? 'win' : 'loss', netProfit, 'Blackjack');
-            logBet('Blackjack', bet, netProfit >= 0 ? 'win' : 'loss', totalWinnings, { summaries: resultSummaries });
+            // Break-even rounds (pushes, insurance cancelling a lost hand) aren't wins
+            const outcome = netProfit > 0 ? 'win' : netProfit < 0 ? 'loss' : 'push';
+            addTransaction(outcome, netProfit, 'Blackjack');
+            logBet('Blackjack', bet, outcome, totalWinnings, { summaries: resultSummaries });
             if (netProfit < 0) playLossStinger();
 
             // Achievements
@@ -181,6 +184,12 @@ function Blackjack() {
         }
     }, [phase, roundProcessed, hands, insuranceTaken, insuranceWin, bet, hands.length]);
 
+
+    // Hand the stake back if the player leaves before this round settles
+    const stakeAtRisk = (['playing', 'dealer', 'insurance'].includes(phase) || (phase === 'result' && !roundProcessed))
+        ? bet * hands.reduce((sum, h) => sum + h.betMultiplier, 0) + (insuranceTaken ? bet / 2 : 0)
+        : 0;
+    useRoundGuard('Blackjack', stakeAtRisk);
 
     return (
         <div className="blackjack-container table-surface-spotlight table-felt-green">

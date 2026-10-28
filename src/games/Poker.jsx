@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePoker, PAY_TABLE } from '../hooks/usePoker';
 import { useWallet } from '../hooks/useWallet';
+import { useRoundGuard } from '../hooks/useRoundGuard';
 import { useBetHistory } from '../hooks/useBetHistory';
 import { useAchievements } from '../hooks/useAchievements';
 import Card from '../components/Card';
@@ -82,6 +83,10 @@ function Poker() {
         setShowResult(false);
         resetGame();
     };
+
+    // Hand the stake back if the player leaves before this round settles
+    const stakeAtRisk = phase === 'deal' || (phase === 'result' && !showResult) ? bet : 0;
+    useRoundGuard('Poker', stakeAtRisk);
 
     return (
         <div className="video-poker-container pt-4 md:pt-20">

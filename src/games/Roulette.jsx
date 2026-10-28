@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRoulette, getNumberColor } from '../hooks/useRoulette';
 import { useWallet } from '../hooks/useWallet';
+import { useRoundGuard } from '../hooks/useRoundGuard';
 import { useBetHistory } from '../hooks/useBetHistory';
 import { useAchievements } from '../hooks/useAchievements';
 import HowToPlay from '../components/HowToPlay';
@@ -147,6 +148,10 @@ function Roulette() {
         });
         return grad;
     };
+
+    // Hand the stake back if the player leaves before this round settles
+    const stakeAtRisk = phase === 'result' && showResult ? 0 : totalBet;
+    useRoundGuard('Roulette', stakeAtRisk);
 
     return (
         <div className="roulette-container">

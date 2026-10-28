@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, RotateCcw, PlusCircle, MinusCircle, ArrowLeft } from 'lucide-react';
 import { useMangatha } from '../hooks/useMangatha';
 import { useWallet } from '../hooks/useWallet';
+import { useRoundGuard } from '../hooks/useRoundGuard';
 import { useBetHistory } from '../hooks/useBetHistory';
 import { useAchievements } from '../hooks/useAchievements';
 import { ChipToken } from '../components/ChipSelector';
@@ -106,6 +107,10 @@ function Mangatha() {
         resetGame();
         setSide(null);
     };
+
+    // Hand the stake back if the player leaves before this round settles
+    const stakeAtRisk = ['joker', 'dealing'].includes(phase) ? bet : 0;
+    useRoundGuard('Mangatha', stakeAtRisk);
 
     return (
         <div className={`mangatha-container table-surface-spotlight table-felt-red ${isShaking ? 'shake-effect' : ''}`}>

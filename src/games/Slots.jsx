@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSlots, SLOT_SYMBOLS, SLOT_PAYOUTS } from '../hooks/useSlots';
 import { useWallet } from '../hooks/useWallet';
+import { useRoundGuard } from '../hooks/useRoundGuard';
 import { useBetHistory } from '../hooks/useBetHistory';
 import { useAchievements } from '../hooks/useAchievements';
 import ChipSelector from '../components/ChipSelector';
@@ -92,6 +93,10 @@ function Slots() {
 
     // Animation symbols for spinning reels
     const spinSymbols = ['🍒', '💎', '7️⃣', '🔔', '🍋'];
+
+    // Hand the stake back if the player leaves before this round settles
+    const stakeAtRisk = phase === 'spinning' || (phase === 'result' && !showResult) ? bet : 0;
+    useRoundGuard('Slots', stakeAtRisk);
 
     return (
         <div className="slots-container">
