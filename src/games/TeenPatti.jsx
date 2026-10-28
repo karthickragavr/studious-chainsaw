@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Bot, CircleDollarSign, Coins, Eye, EyeOff, ShieldAlert, BadgeCheck, AlertCircle, ChevronRight, XCircle, TrendingUp } from 'lucide-react';
 import Table from '../components/Table';
@@ -63,7 +63,7 @@ const INITIAL_PLAYERS = [
 ];
 
 const TeenPatti = () => {
-    const { balance, updateBalance } = useWallet();
+    const { balance, updateBalance, addTransaction } = useWallet();
     const { logBet } = useBetHistory();
     const { unlockAchievement } = useAchievements();
 
@@ -72,6 +72,10 @@ const TeenPatti = () => {
     const [pot, setPot] = useState(0);
     const [currentBetLevel, setCurrentBetLevel] = useState(0); // The base blind bet cost
     const [activeTurn, setActiveTurn] = useState(-1);
+    // Delayed callbacks (showdown timer, bot turns) must pay out the pot as it
+    // is now, not as it was when they were scheduled.
+    const potRef = useRef(0);
+    useEffect(() => { potRef.current = pot; }, [pot]);
 
     // UI state
     const [selectedChip, setSelectedChip] = useState(10);
@@ -207,21 +211,25 @@ const TeenPatti = () => {
     const handleWin = (winnerId, currentPlayers, reason) => {
         setPhase('result');
         const isHuman = winnerId === 0;
+        const finalPot = potRef.current;
+        const staked = currentPlayers[0].totalBet;
 
         if (isHuman) {
-            updateBalance(pot);
+            updateBalance(finalPot);
+            addTransaction('win', finalPot - staked, 'Teen Patti');
             playWinJingle();
-            if (pot > 500) unlockAchievement('teentitan');
-            logBet('teenpatti', currentBetLevel, pot, true);
+            if (finalPot > 500) unlockAchievement('teentitan');
+            logBet('Teen Patti', staked, 'win', finalPot, { reason });
         } else {
+            addTransaction('loss', -staked, 'Teen Patti');
             playLossStinger();
-            logBet('teenpatti', currentBetLevel, pot, false);
+            logBet('Teen Patti', staked, 'loss', 0, { reason });
         }
 
         setModalData({
             type: isHuman ? 'win' : 'loss',
             title: isHuman ? 'You Win!' : `${currentPlayers[winnerId].name} Wins`,
-            amount: isHuman ? `+$${pot.toLocaleString()}` : `-$${currentPlayers[0].totalBet.toLocaleString()}`,
+            amount: isHuman ? `+$${finalPot.toLocaleString()}` : `-$${staked.toLocaleString()}`,
             reason: reason,
             winnerHand: isHuman ? null : currentPlayers[winnerId].hand // show bot's hand if they won
         });
@@ -249,6 +257,8 @@ const TeenPatti = () => {
 
     const onHumanAction = (action) => {
         if (activeTurn !== 0 || phase !== 'playing') return;
+        const cost = action === 'fold' ? 0 : humanCost * (action === 'raise' ? 2 : 1);
+        if (cost > balance) return; // can't bet chips you don't have
         const updatedPlayers = handleAction(0, action, 0, !players[0].isBlind);
 
         // Wait a frame to let state update before advancing
@@ -264,7 +274,9 @@ const TeenPatti = () => {
 
         // Pay the cost to show
         const cost = players[0].isBlind ? currentBetLevel : currentBetLevel * 2;
+        if (cost > balance) return;
         updateBalance(-cost);
+        potRef.current += cost;
         setPot(curr => curr + cost);
 
         triggerShowdown(players);
@@ -278,7 +290,7 @@ const TeenPatti = () => {
             <main className="tp-container relative z-10 w-full h-full flex flex-col items-center justify-between p-4 max-w-5xl mx-auto">
 
                 {/* ── Info Bar ── */}
-                <div className="tp-header w-full flex justify-between items-center bg-black/40 p-4 rounded-xl border border-white/10 backdrop-blur-md mt-14 md:mt-2">
+                <div className="tp-header w-full flex justify-between items-center bg-black/40 p-4 rounded-xl border border-white/10 backdrop-blur-md mt-2">
                     <div>
                         <h2 className="text-2xl font-bold text-white tracking-widest uppercase">Teen Patti</h2>
                         <p className="text-white/60 text-sm font-medium">Solo vs Bots</p>
@@ -335,7 +347,7 @@ const TeenPatti = () => {
                     {phase === 'ante' && (
                         <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="flex flex-col items-center gap-6 bg-black/60 p-8 rounded-3xl border border-white/10 backdrop-blur-xl shadow-2xl">
                             <h3 className="text-xl font-bold text-white uppercase tracking-widest">Place Ante</h3>
-                            <ChipSelector selectedChip={selectedChip} onSelectChip={setSelectedChip} />
+                            <ChipSelector preset="medium" selectedChip={selectedChip} onSelectChip={setSelectedChip} />
                             <motion.button
                                 whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                                 onClick={placeAnte}
@@ -350,7 +362,7 @@ const TeenPatti = () => {
                         <div className={`p-6 rounded-3xl border transition-all ${activeTurn === 0 ? 'bg-amber-900/30 border-amber-500/50 shadow-[0_0_30px_rgba(245,158,11,0.15)]' : 'bg-black/60 border-white/10'}`}>
 
                             {/* Human Cards */}
-                            <div className="flex justify-center -mt-16 mb-6">
+                            <div className="flex justify-center -mt-4 md:-mt-16 mb-4 md:mb-6">
                                 {players[0].hand.map((card, i) => (
                                     <motion.div
                                         key={`h-${i}`}
@@ -373,7 +385,7 @@ const TeenPatti = () => {
                             {/* Human Controls */}
                             {players[0].isActive ? (
                                 <div className="space-y-4">
-                                    <div className="flex justify-between items-center px-4">
+                                    <div className="flex justify-between items-center gap-3 px-2 md:px-4 text-sm md:text-base">
                                         <div className="text-white/80 font-bold uppercase tracking-wider">{players[0].isBlind ? 'Playing Blind' : 'Playing Seen'}</div>
                                         <div className="text-amber-400 font-bold">Your Bet: ${players[0].totalBet}</div>
                                     </div>
@@ -394,7 +406,7 @@ const TeenPatti = () => {
                                         </button>
 
                                         <button
-                                            disabled={activeTurn !== 0}
+                                            disabled={activeTurn !== 0 || humanCost > balance}
                                             onClick={() => onHumanAction('call')}
                                             className="tp-btn tactile-button tactile-button-emerald disabled:opacity-50"
                                         >
@@ -402,7 +414,7 @@ const TeenPatti = () => {
                                         </button>
 
                                         <button
-                                            disabled={activeTurn !== 0}
+                                            disabled={activeTurn !== 0 || humanCost * 2 > balance}
                                             onClick={() => onHumanAction('raise')}
                                             className="tp-btn tactile-button tactile-button-gold disabled:opacity-50"
                                         >
@@ -412,7 +424,8 @@ const TeenPatti = () => {
                                         {players.filter(p => p.isActive).length === 2 && activeTurn === 0 && (
                                             <button
                                                 onClick={onShow}
-                                                className="tp-btn tactile-button w-full mt-2"
+                                                disabled={humanCost > balance}
+                                                className="tp-btn tactile-button w-full mt-2 disabled:opacity-50"
                                                 style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)', boxShadow: '0 4px 0 #4c1d95, 0 0 15px rgba(124,58,237,0.3)' }}
                                             >
                                                 Force Show (${humanCost})

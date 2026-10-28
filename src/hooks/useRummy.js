@@ -183,8 +183,15 @@ export const useRummy = () => {
         // Check if AI can knock
         const aiDeadwood = calculateDeadwood(newAiHand);
         if (aiDeadwood <= 10) {
-            setResult('ai');
-            setMessage(`AI knocks with ${aiDeadwood} deadwood!`);
+            // A knock is a showdown: the player undercuts if their deadwood is lower
+            const playerDeadwood = calculateDeadwood(currentPlayerHand);
+            if (playerDeadwood < aiDeadwood) {
+                setResult('player');
+                setMessage(`AI knocks with ${aiDeadwood}, but you undercut with ${playerDeadwood}!`);
+            } else {
+                setResult('ai');
+                setMessage(`AI knocks with ${aiDeadwood} deadwood!`);
+            }
             setPhase('result');
             return;
         }

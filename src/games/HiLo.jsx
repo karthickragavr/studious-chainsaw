@@ -44,7 +44,7 @@ const getMultiplier = (streak) => MULTIPLIER[Math.min(streak, MULTIPLIER.length 
 const HILO_RULES = [
     'A card is shown face-up.',
     'Predict if the next card will be Higher, Lower, or Equal.',
-    'Correct prediction = win your bet × the current multiplier.',
+    'Correct prediction = win your bet × the current multiplier (profit, on top of your stake).',
     'Chain correct guesses to grow the multiplier (up to 8×).',
     '"Equal" pays 8:1 but only wins when values match exactly.',
     'Wrong guess = lose your bet. Collect any time to bank winnings.',
@@ -148,7 +148,9 @@ function HiLo() {
         setTimeout(() => {
             if (won) {
                 const newStreak = streak + 1;
-                const newPending = (prediction === 'equal') ? pending + payout : pending + bet * getMultiplier(newStreak - 1);
+                // The stake was deducted up front, so the first win banks it back
+                // along with the profit; later wins just add their profit.
+                const newPending = (streak === 0 ? bet : pending) + payout;
                 setStreak(newStreak);
                 setPending(newPending);
                 setLastResult(prediction === 'equal' ? 'equal-win' : 'win');
@@ -182,7 +184,7 @@ function HiLo() {
         logBet('Hi-Lo', bet, 'win', total, { streak });
         unlockAchievement('first_win');
         if (balance + total >= 10000) unlockAchievement('balance_10k');
-        setModalData({ type: 'win', amount: total, streak });
+        setModalData({ type: 'win', amount: total - bet, streak });
         setShowModal(true);
         setPhase('result');
     }, [pending, bet, streak, balance, updateBalance, addTransaction, logBet, unlockAchievement]);

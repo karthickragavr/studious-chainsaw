@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 
 const RED_NUMBERS = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
 
@@ -19,6 +19,7 @@ export const useRoulette = () => {
     const [result, setResult] = useState(null);
     const [spinAngle, setSpinAngle] = useState(0);
     const [bets, setBets] = useState({}); // { betType: amount }
+    const angleRef = useRef(0);
 
     const placeBet = useCallback((betType, amount) => {
         setBets(prev => ({
@@ -50,7 +51,14 @@ export const useRoulette = () => {
         const winningNumber = Math.floor(Math.random() * 37); // 0-36
         const winIndex = WHEEL_ORDER.indexOf(winningNumber);
         const sliceAngle = 360 / 37;
-        const targetAngle = 360 * 5 + (360 - (winIndex * sliceAngle + sliceAngle / 2));
+        // The wheel's angle is cumulative: each spin adds five full turns plus
+        // whatever brings the winning slice under the top pointer from where
+        // the wheel currently rests, so it never rewinds between rounds.
+        const sliceCenter = winIndex * sliceAngle + sliceAngle / 2;
+        const restingAngle = ((angleRef.current % 360) + 360) % 360;
+        const delta = ((360 - sliceCenter - restingAngle) % 360 + 360) % 360;
+        const targetAngle = angleRef.current + 360 * 5 + delta;
+        angleRef.current = targetAngle;
 
         setSpinAngle(targetAngle);
 
@@ -123,7 +131,6 @@ export const useRoulette = () => {
     const resetGame = useCallback(() => {
         setResult(null);
         setBets({});
-        setSpinAngle(0);
         setPhase('betting');
     }, []);
 

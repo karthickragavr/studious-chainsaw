@@ -84,7 +84,7 @@ function Poker() {
     };
 
     return (
-        <div className="video-poker-container pt-20">
+        <div className="video-poker-container pt-4 md:pt-20">
             {/* Physical Cabinet Frame */}
             <div className="machine-frame max-w-4xl mx-auto">
                 <div className="video-poker-panel p-2 sm:p-8">

@@ -316,7 +316,9 @@ function Blackjack() {
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.9 }}
-                                className="blackjack-insurance-modal"
+                                // framer owns `transform` here, so centre with its x/y rather than a translate class
+                                style={{ x: '-50%', y: '-50%' }}
+                                className="blackjack-insurance-modal max-w-[calc(100vw-2rem)]"
                             >
                                 <h3 className="text-2xl font-black text-amber-400 uppercase tracking-widest">Insurance?</h3>
                                 <p className="text-white/60 font-medium">Cost: ${bet / 2} — Pays 2:1</p>

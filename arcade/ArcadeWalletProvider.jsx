@@ -45,11 +45,11 @@ export const ArcadeWalletProvider = ({ children }) => {
     const applyDelta = useCallback((amount) => {
         const delta = Math.trunc(amount);
         if (!Number.isFinite(delta) || delta === 0) return;
-        setBalance(prev => {
-            const next = Math.max(0, prev + delta);
-            balanceRef.current = next;
-            return next;
-        });
+        // Update the ref synchronously: a setState updater only runs at render
+        // time, so back-to-back debits would otherwise all see the old balance.
+        const next = Math.max(0, balanceRef.current + delta);
+        balanceRef.current = next;
+        setBalance(next);
         setLastChange({ amount: delta, at: Date.now() });
     }, []);
 

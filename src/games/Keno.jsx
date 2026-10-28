@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, HelpCircle } from 'lucide-react';
@@ -52,7 +52,7 @@ export default function Keno() {
 
     const [selectedNumbers, setSelectedNumbers] = useState([]);
     const [drawnNumbers, setDrawnNumbers] = useState([]);
-    const [bet, setBet] = useState(1);
+    const [bet, setBet] = useState(10);
     const [phase, setPhase] = useState('betting'); // betting, drawing, result
     const [showResult, setShowResult] = useState(false);
     const [payoutMultiplier, setPayoutMultiplier] = useState(0);
@@ -94,7 +94,6 @@ export default function Keno() {
 
         playChipClick();
         updateBalance(-bet);
-        addTransaction(-bet, 'Keno Bet');
         setPhase('drawing');
         setDrawnNumbers([]);
         setShowResult(false);
@@ -163,7 +162,7 @@ export default function Keno() {
                 </Link>
                 <div className="flex gap-4 items-center">
                     <span className="font-mono text-emerald-300 bg-black/40 px-4 py-2 rounded-lg border border-emerald-500/20">
-                        Balance: ${wallet.toFixed(2)}
+                        Balance: ${wallet.toLocaleString()}
                     </span>
                     <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center justify-center hover:bg-emerald-500/20">
                         <HelpCircle size={20} />
@@ -240,7 +239,7 @@ export default function Keno() {
                         <span className="text-[10px] font-black uppercase tracking-widest text-white/50 mb-2">Bet Amount</span>
                         <div className="scale-90 md:scale-100">
                             <ChipSelector
-                                preset="mid"
+                                preset="medium"
                                 selectedChip={bet}
                                 onSelectChip={(val) => phase === 'betting' && setBet(val)}
                                 idPrefix="keno"
@@ -268,7 +267,7 @@ export default function Keno() {
                 type={payoutAmount > 0 ? 'win' : 'loss'}
                 title={payoutAmount > 0 ? 'KENO WINNER!' : 'NO WIN'}
                 amount={payoutAmount > 0 ? `+$${payoutAmount}` : `-$${bet}`}
-                onClose={resetGame}
+                onPlayAgain={resetGame}
                 content={
                     <div className="flex flex-col items-center mt-2">
                         <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-center">
