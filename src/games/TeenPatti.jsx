@@ -7,6 +7,7 @@ import ChipSelector from '../components/ChipSelector';
 import ResultModal from '../components/ResultModal';
 import HowToPlay from '../components/HowToPlay';
 import { useWallet } from '../hooks/useWallet';
+import { useRoundGuard } from '../hooks/useRoundGuard';
 import { useBetHistory } from '../hooks/useBetHistory';
 import { useAchievements } from '../hooks/useAchievements';
 import { evaluateHand, getBotAction } from './utils/TeenPattiLogic';
@@ -76,6 +77,13 @@ const TeenPatti = () => {
     // is now, not as it was when they were scheduled.
     const potRef = useRef(0);
     useEffect(() => { potRef.current = pot; }, [pot]);
+    // Timers here aren't cancelled on unmount; once the player has left, the
+    // stake is refunded, so a late showdown must not also pay out the pot.
+    const mountedRef = useRef(true);
+    useEffect(() => {
+        mountedRef.current = true;
+        return () => { mountedRef.current = false; };
+    }, []);
 
     // UI state
     const [selectedChip, setSelectedChip] = useState(10);
@@ -209,6 +217,7 @@ const TeenPatti = () => {
     };
 
     const handleWin = (winnerId, currentPlayers, reason) => {
+        if (!mountedRef.current) return;
         setPhase('result');
         const isHuman = winnerId === 0;
         const finalPot = potRef.current;
@@ -279,11 +288,19 @@ const TeenPatti = () => {
         potRef.current += cost;
         setPot(curr => curr + cost);
 
-        triggerShowdown(players);
+        // The show fee is part of the player's stake: count it so the payout
+        // record, win/loss amount and refund guard all agree with the wallet.
+        const withShowFee = players.map(p => (p.id === 0 ? { ...p, totalBet: p.totalBet + cost } : p));
+        setPlayers(withShowFee);
+        triggerShowdown(withShowFee);
     };
 
 
     const humanCost = players[0].isBlind ? currentBetLevel : currentBetLevel * 2;
+
+    // Hand the stake back if the player leaves before this round settles
+    const stakeAtRisk = phase === 'playing' || phase === 'showdown' ? players[0].totalBet : 0;
+    useRoundGuard('Teen Patti', stakeAtRisk);
 
     return (
         <Table layout="3d" variant="baccarat">

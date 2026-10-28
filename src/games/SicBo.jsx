@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSicBo } from '../hooks/useSicBo';
 import { useWallet } from '../hooks/useWallet';
+import { useRoundGuard } from '../hooks/useRoundGuard';
 import { useBetHistory } from '../hooks/useBetHistory';
 import { useAchievements } from '../hooks/useAchievements';
 import HowToPlay from '../components/HowToPlay';
@@ -184,6 +185,10 @@ function SicBo() {
         </button>
     );
 
+    // Hand the stake back if the player leaves before this round settles
+    const stakeAtRisk = phase === 'result' && showResult ? 0 : totalBet;
+    useRoundGuard('Sic Bo', stakeAtRisk);
+
     return (
         <div className="roulette-container table-felt-green table-surface-spotlight">
             <div className="roulette-main-area">
@@ -258,7 +263,7 @@ function SicBo() {
                     </div>
 
                     {/* Controls */}
-                    <div className="roulette-controls-panel !max-w-4xl mx-auto mt-6">
+                    <div className="roulette-controls-panel sicbo-dock !max-w-4xl mx-auto mt-6">
                         {/* Chips */}
                         <div className="roulette-chips-container flex-wrap justify-center items-center gap-3 md:gap-4 scale-90 md:scale-100">
                             <button

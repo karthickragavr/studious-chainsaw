@@ -8,6 +8,7 @@ import ChipSelector from '../components/ChipSelector';
 import ResultModal from '../components/ResultModal';
 import HowToPlay from '../components/HowToPlay';
 import { useWallet } from '../hooks/useWallet';
+import { useRoundGuard } from '../hooks/useRoundGuard';
 import { useBetHistory } from '../hooks/useBetHistory';
 import { useAchievements } from '../hooks/useAchievements';
 import { playWinJingle, playLossStinger } from '../utils/sounds';
@@ -208,6 +209,12 @@ function HiLo() {
 
     const currentMult = getMultiplier(streak);
     const nextMult = getMultiplier(streak + 1);
+
+    // Hand the stake back if the player leaves before this round settles
+    const stakeAtRisk = phase === 'reveal' ? (streak === 0 ? bet : pending)
+        : phase === 'reveal-win' || phase === 'collect' || (phase === 'betting' && streak > 0) ? pending
+        : 0;
+    useRoundGuard('Hi-Lo', stakeAtRisk);
 
     return (
         <div className="hilo-container table-surface-spotlight table-felt-green">

@@ -4,6 +4,7 @@ import ResultModal from '../components/ResultModal';
 
 import { useBaccarat } from '../hooks/useBaccarat';
 import { useWallet } from '../hooks/useWallet';
+import { useRoundGuard } from '../hooks/useRoundGuard';
 import { useBetHistory } from '../hooks/useBetHistory';
 import { useAchievements } from '../hooks/useAchievements';
 import Table from '../components/Table';
@@ -100,6 +101,10 @@ function Baccarat() {
     const won = result === betSide;
     const isPush = result === 'tie' && betSide !== 'tie';
 
+    // Hand the stake back if the player leaves before this round settles
+    const stakeAtRisk = phase === 'dealing' || (phase === 'result' && !showResult) ? bet : 0;
+    useRoundGuard('Baccarat', stakeAtRisk);
+
     return (
         <div className="baccarat-container table-surface-spotlight table-felt-blue">
             <Table>
@@ -158,7 +163,7 @@ function Baccarat() {
                             className="baccarat-betting-area"
                         >
                             {/* Bet Side Selection */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                            <div className="grid grid-cols-3 gap-2 md:gap-4 mb-4 md:mb-8">
                                 {[
                                     { key: 'player', label: 'Player', sub: '1:1', type: 'player' },
                                     { key: 'tie', label: 'Tie', sub: '8:1', type: 'tie' },
@@ -177,7 +182,7 @@ function Baccarat() {
                             </div>
 
                             {/* Chips */}
-                            <div className="mb-8 scale-110">
+                            <div className="mb-4 md:mb-8 md:scale-110 flex justify-center">
                                 <ChipSelector
                                     preset="high"
                                     selectedChip={bet}

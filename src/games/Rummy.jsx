@@ -4,6 +4,7 @@ import ResultModal from '../components/ResultModal';
 
 import { useRummy } from '../hooks/useRummy';
 import { useWallet } from '../hooks/useWallet';
+import { useRoundGuard } from '../hooks/useRoundGuard';
 import { useBetHistory } from '../hooks/useBetHistory';
 import { useAchievements } from '../hooks/useAchievements';
 import Card from '../components/Card';
@@ -102,6 +103,10 @@ function Rummy() {
         undercut: { title: 'Undercut!', color: 'from-red-400 to-orange-500', text: `Lost $${bet}` },
         draw: { title: 'Draw', color: 'from-slate-400 to-slate-500', text: 'Bet returned' },
     };
+
+    // Hand the stake back if the player leaves before this round settles
+    const stakeAtRisk = ['draw', 'discard', 'aiTurn'].includes(phase) || (phase === 'result' && !showResult) ? bet : 0;
+    useRoundGuard('Rummy', stakeAtRisk);
 
     return (
         <div className="rummy-container" style={{ backgroundColor: 'var(--bg-deep)' }}>
