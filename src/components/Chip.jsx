@@ -1,30 +1,32 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const Chip = ({ value, color, onClick, isSelected, scale = 1 }) => {
+const Chip = ({ value, color, onClick, isSelected, scale = 1, id }) => {
     return (
         <motion.div
-            whileHover={{ y: -10, scale: scale * 1.1 }}
-            whileTap={{ scale: scale * 0.9 }}
+            id={id}
+            whileHover={{ y: -5, scale: scale * 1.05 }}
+            whileTap={{ scale: scale * 0.95 }}
             initial={{ scale: 0 }}
             animate={{ scale: scale }}
             onClick={onClick}
-            className={`relative w-16 h-16 rounded-full cursor-pointer flex items-center justify-center border-4 border-dashed border-white/20 shadow-2xl transition-shadow ${isSelected ? 'shadow-[0_0_20px_rgba(255,255,255,0.4)] ring-4 ring-white/30' : ''}`}
+            className={`chip-container ${isSelected ? 'chip-selected' : ''}`}
             style={{
                 backgroundColor: color,
-                background: `radial-gradient(circle at center, ${color} 0%, rgba(0,0,0,0.3) 100%)`
+                background: `radial-gradient(circle at 30% 30%, ${color}, #000)`
             }}
         >
-            <div className="absolute inset-2 border-2 border-white/10 rounded-full flex items-center justify-center">
-                <span className="text-white font-black text-sm font-mono">${value}</span>
+            <div className="chip-highlight"></div>
+            <div className="chip-inner-ring">
+                <span className="chip-value-text">${value}</span>
             </div>
 
             {/* Decorative Ridges */}
             {[0, 60, 120, 180, 240, 300].map(deg => (
                 <div
                     key={deg}
-                    className="absolute w-2 h-1 bg-white/40"
-                    style={{ transform: `rotate(${deg}deg) translateY(-26px)` }}
+                    className="chip-ridge"
+                    style={{ transform: `rotate(${deg}deg) translateY(-50%)`, top: '50%', height: '2px', width: '100%', background: 'transparent', borderLeft: '4px solid rgba(255,255,255,0.2)', borderRight: '4px solid rgba(255,255,255,0.2)', left: 0 }}
                 />
             ))}
         </motion.div>

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { playCardSnap } from '../utils/sounds';
+import { playCardSnap, playShuffle } from '../utils/sounds';
 
 const SUITS = ['♠', '♥', '♣', '♦'];
 
@@ -30,6 +30,7 @@ export const useMangatha = () => {
         const jokerCard = newDeck.pop();
         setJoker(jokerCard);
         setDeck(newDeck);
+        playShuffle();
 
         setAndarCards([]);
         setBaharCards([]);
