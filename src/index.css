@@ -5042,3 +5042,81 @@ body {
     letter-spacing: 0.12em;
   }
 }
+
+/* ═══════════════════════════════════════════
+   BACCARAT — FIT ONE PHONE SCREEN
+   Stacked hands + three tall bet buttons pushed Deal ~400px below the fold.
+   ═══════════════════════════════════════════ */
+@media (max-width: 767px) {
+  .baccarat-hands-area {
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .baccarat-hand-box {
+    padding: 0.5rem 1rem;
+    gap: 0.25rem;
+    border-radius: 1.25rem;
+  }
+
+  .baccarat-betting-area {
+    padding: 1rem;
+    border-radius: 1.5rem;
+  }
+
+  .baccarat-spot-btn {
+    padding: 0.5rem;
+    min-height: 4.5rem;
+    border-radius: 1rem;
+  }
+
+  .baccarat-spot-btn .text-xl {
+    font-size: 1rem;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   RUMMY — AI HAND ON ONE ROW (PHONES)
+   Cards are scaled to 60% but keep their full layout box, so ten of them
+   wrapped into three rows and pushed the player's hand below the fold.
+   Overlap the boxes to the scaled width instead, and give back the height.
+   ═══════════════════════════════════════════ */
+@media (max-width: 767px) {
+  .rummy-ai-cards-container {
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .rummy-ai-card-wrapper {
+    flex-shrink: 0;
+    margin: -28px -30px;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   SIC BO — PIN CHIPS / TOTAL / ROLL TO THE SCREEN BOTTOM (PHONES)
+   The board is ~1300px tall; with the controls at its end you had to scroll
+   away from the bets to change chips or roll. Fixed (not sticky) because the
+   table surface clips overflow. The container reserves room beneath the bets.
+   ═══════════════════════════════════════════ */
+@media (max-width: 767px) {
+  .sicbo-betting-container {
+    padding-bottom: 12rem;
+  }
+
+  .sicbo-dock {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    margin: 0 !important;
+    max-width: none !important;
+    padding: 0.5rem 0.75rem calc(0.5rem + env(safe-area-inset-bottom));
+    background: rgba(2, 6, 23, 0.92);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid var(--glass-border);
+  }
+}
