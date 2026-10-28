@@ -171,7 +171,7 @@ function Roulette() {
                         <motion.div
                             className="relative w-full h-full rounded-full shadow-[0_0_50px_rgba(0,0,0,0.5),inset_0_0_20px_rgba(0,0,0,0.8)] border-4 border-slate-950 overflow-hidden"
                             style={{ background: `conic-gradient(${generateConicGradient()})` }}
-                            animate={{ rotate: phase === 'spinning' ? spinAngle : 0 }}
+                            animate={{ rotate: spinAngle }}
                             transition={{
                                 duration: 4,
                                 ease: [0.2, 0.8, 0.3, 1]

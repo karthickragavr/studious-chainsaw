@@ -23,7 +23,7 @@ const BACCARAT_RULES = [
 ];
 
 const BACCARAT_STEPS = [
-    "Choose your bet: Player (1:1), Banker (0.95:1), or Tie (8:1).",
+    "Choose your bet: Player (1:1), Banker (0.95:1), or Tie (8:1). Player and Banker bets are returned if the hands tie.",
     "Select your bet amount using the chips.",
     "Click 'Deal' to start the round.",
     "Cards are dealt and third cards drawn automatically.",
@@ -59,14 +59,21 @@ function Baccarat() {
         if (phase === 'result' && result) {
             const timer = setTimeout(() => {
                 let winnings = 0;
-                if (result === betSide) {
+                const isPush = result === 'tie' && betSide !== 'tie';
+                if (isPush) {
+                    winnings = bet; // Player/Banker bets are returned on a tie
+                } else if (result === betSide) {
                     if (betSide === 'player') winnings = bet * 2;
                     else if (betSide === 'banker') winnings = Math.floor(bet * 1.95);
                     else if (betSide === 'tie') winnings = bet * 9;
                     playWinJingle();
                     confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
                 }
-                if (winnings > 0) {
+                if (isPush) {
+                    updateBalance(winnings);
+                    addTransaction('push', 0, 'Baccarat');
+                    logBet('Baccarat', bet, 'push', winnings, { betSide, result });
+                } else if (winnings > 0) {
                     updateBalance(winnings);
                     addTransaction('win', winnings - bet, 'Baccarat');
                     logBet('Baccarat', bet, 'win', winnings, { betSide, result });
@@ -91,12 +98,7 @@ function Baccarat() {
     };
 
     const won = result === betSide;
-    const getWinText = () => {
-        if (!won) return `Lost $${bet}`;
-        if (betSide === 'tie') return `Won $${bet * 8}`;
-        if (betSide === 'banker') return `Won $${Math.floor(bet * 0.95)}`;
-        return `Won $${bet}`;
-    };
+    const isPush = result === 'tie' && betSide !== 'tie';
 
     return (
         <div className="baccarat-container table-surface-spotlight table-felt-blue">
@@ -200,9 +202,9 @@ function Baccarat() {
             {/* Result Modal */}
             <ResultModal
                 isOpen={showResult}
-                type={won ? 'win' : 'loss'}
+                type={isPush ? 'draw' : won ? 'win' : 'loss'}
                 title={result === 'tie' ? 'Tie!' : `${result === 'player' ? 'Player' : 'Banker'} Wins!`}
-                amount={won ? `+$${(() => {
+                amount={isPush ? 'Bet returned' : won ? `+$${(() => {
                     if (betSide === 'tie') return bet * 8;
                     if (betSide === 'banker') return Math.floor(bet * 0.95);
                     return bet;

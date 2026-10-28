@@ -114,11 +114,17 @@ function Craps() {
             logBet('Craps', interimWin.amount / 2, 'win', interimWin.amount, { bet: 'field', sum: interimWin.sum });
             playWinJingle();
             setFieldFlash(interimWin.amount);
-            const t = setTimeout(() => setFieldFlash(null), 2200);
             acknowledgeInterimWin();
-            return () => clearTimeout(t);
         }
     }, [interimWin]);
+
+    // Separate from the payout effect above: acknowledging the win changes
+    // interimWin, and a cleanup there would cancel the timer that hides this.
+    useEffect(() => {
+        if (fieldFlash === null) return;
+        const t = setTimeout(() => setFieldFlash(null), 2200);
+        return () => clearTimeout(t);
+    }, [fieldFlash]);
 
     // Round resolved (pass line won or lost)
     useEffect(() => {
@@ -190,7 +196,8 @@ function Craps() {
                                 initial={{ opacity: 0, y: 10, scale: 0.8 }}
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 exit={{ opacity: 0, y: -10 }}
-                                className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-blue-500 text-white px-4 py-1 rounded-full font-black text-sm shadow-xl z-20 whitespace-nowrap"
+                                style={{ x: '-50%' }}
+                                className="absolute bottom-2 left-1/2 bg-blue-500 text-white px-4 py-1 rounded-full font-black text-sm shadow-xl z-20 whitespace-nowrap"
                             >
                                 FIELD PAYS +${fieldFlash}
                             </motion.div>
