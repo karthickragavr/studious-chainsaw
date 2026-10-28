@@ -126,7 +126,7 @@ function Mangatha() {
                                 <div className="mangatha-bet-multiplier">2x</div>
 
                                 {side === 'andar' && (
-                                    <motion.div initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mangatha-chip-container">
+                                    <motion.div initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} style={{ x: '-50%' }} className="mangatha-chip-container">
                                         <ChipToken value={bet} color="#f59e0b" scale={0.8} disabled />
                                     </motion.div>
                                 )}
@@ -184,7 +184,7 @@ function Mangatha() {
                                 <span className={`mangatha-bet-label ${side === 'bahar' ? 'mangatha-bet-label-selected' : ''}`}>Veliyae (Outside)</span>
                                 <div className="mangatha-bet-multiplier">2x</div>
                                 {side === 'bahar' && (
-                                    <motion.div initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mangatha-chip-container">
+                                    <motion.div initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} style={{ x: '-50%' }} className="mangatha-chip-container">
                                         <ChipToken value={bet} color="#f59e0b" scale={0.8} disabled />
                                     </motion.div>
                                 )}

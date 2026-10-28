@@ -7,7 +7,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  /* viewport-fit=cover lets the page run under the notch; pad it back out */
+  padding: 0.75rem max(1rem, env(safe-area-inset-right)) 0.75rem max(1rem, env(safe-area-inset-left));
+  padding-top: max(0.75rem, env(safe-area-inset-top));
   background: var(--bg-surface);
   border-bottom: 1px solid var(--glass-border);
   backdrop-filter: blur(12px);
@@ -101,7 +103,18 @@
   color: var(--text-muted);
 }
 
+@media (pointer: coarse) {
+  .arcade-icon-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
+
 @media (max-width: 480px) {
+  .arcade-header-actions {
+    gap: 0.35rem;
+  }
+
   .arcade-brand-tag {
     display: none;
   }
